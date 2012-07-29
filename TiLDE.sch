@@ -37095,7 +37095,6 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 <part name="GND30" library="SparkFun" deviceset="GND" device=""/>
 <part name="GND32" library="SparkFun" deviceset="GND" device=""/>
 <part name="GND4" library="SparkFun" deviceset="GND" device=""/>
-<part name="C2" library="resistor" deviceset="C-EU" device="C0603K" value="0.1uF"/>
 <part name="P+1" library="SparkFun" deviceset="VCC" device=""/>
 <part name="P+8" library="SparkFun" deviceset="VCC" device=""/>
 <part name="P+9" library="SparkFun" deviceset="VCC" device=""/>
@@ -37227,7 +37226,6 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 <text x="121.92" y="45.72" size="3.81" layer="95" ratio="12">ICSP</text>
 <text x="193.04" y="45.72" size="3.81" layer="95" ratio="12">Analog Supply</text>
 <text x="251.46" y="45.72" size="3.81" layer="95" ratio="12">Status LEDs</text>
-<text x="360.68" y="68.58" size="3.81" layer="95" ratio="12">UART</text>
 <text x="355.6" y="193.04" size="3.81" layer="95" ratio="12">Breakouts</text>
 <text x="99.06" y="254" size="3.81" layer="95" ratio="12">ATMEGA 32U4</text>
 <text x="5.08" y="5.08" size="1.778" layer="95">Design based from vinciDuino</text>
@@ -37308,8 +37306,7 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 <instance part="GND8" gate="1" x="276.86" y="7.62" rot="MR0"/>
 <instance part="GND30" gate="1" x="342.9" y="231.14"/>
 <instance part="GND32" gate="1" x="325.12" y="231.14"/>
-<instance part="GND4" gate="1" x="40.64" y="139.7" rot="MR0"/>
-<instance part="C2" gate="G$1" x="165.1" y="20.32" rot="R90"/>
+<instance part="GND4" gate="1" x="40.64" y="137.16" rot="MR0"/>
 <instance part="P+1" gate="1" x="172.72" y="35.56"/>
 <instance part="P+8" gate="1" x="20.32" y="256.54"/>
 <instance part="P+9" gate="1" x="139.7" y="33.02"/>
@@ -37420,7 +37417,7 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 <attribute name="NAME" x="42.164" y="147.701" size="1.778" layer="95"/>
 <attribute name="VALUE" x="43.18" y="142.621" size="1.778" layer="96"/>
 </instance>
-<instance part="GND22" gate="1" x="25.4" y="139.7" rot="MR0"/>
+<instance part="GND22" gate="1" x="25.4" y="137.16" rot="MR0"/>
 <instance part="Q1" gate="G$1" x="33.02" y="149.86" smashed="yes">
 <attribute name="NAME" x="32.258" y="153.416" size="1.6764" layer="95" ratio="11"/>
 <attribute name="VALUE" x="41.91" y="152.146" size="1.4224" layer="96" ratio="12"/>
@@ -37532,11 +37529,9 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 <wire x1="170.18" y1="17.78" x2="170.18" y2="20.32" width="0.1524" layer="91"/>
 <wire x1="172.72" y1="20.32" x2="180.34" y2="20.32" width="0.1524" layer="91"/>
 <junction x="172.72" y="20.32"/>
-<junction x="170.18" y="20.32"/>
 <label x="190.5" y="20.32" size="1.778" layer="95" rot="R180" xref="yes"/>
 <pinref part="R2" gate="G$1" pin="1"/>
 <pinref part="S2" gate="S" pin="4"/>
-<pinref part="C2" gate="G$1" pin="2"/>
 <pinref part="S2" gate="S" pin="3"/>
 </segment>
 <segment>
@@ -37593,12 +37588,12 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 <label x="205.74" y="177.8" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="JP5" gate="A" pin="6"/>
-<wire x1="48.26" y1="104.14" x2="58.42" y2="104.14" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="U$1" gate="G$1" pin="PB3(MISO)"/>
 <wire x1="195.58" y1="177.8" x2="205.74" y2="177.8" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP5" gate="A" pin="7"/>
+<wire x1="40.64" y1="101.6" x2="30.48" y2="101.6" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="MOSI" class="0">
@@ -37614,12 +37609,12 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 <label x="205.74" y="180.34" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="JP5" gate="A" pin="7"/>
-<wire x1="40.64" y1="101.6" x2="30.48" y2="101.6" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <pinref part="U$1" gate="G$1" pin="PB2(MOSI)"/>
 <wire x1="195.58" y1="180.34" x2="205.74" y2="180.34" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="JP5" gate="A" pin="6"/>
+<wire x1="48.26" y1="104.14" x2="58.42" y2="104.14" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$7" class="0">
@@ -38237,13 +38232,6 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 <wire x1="243.84" y1="213.36" x2="243.84" y2="200.66" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="RST" class="0">
-<segment>
-<wire x1="162.56" y1="20.32" x2="157.48" y2="20.32" width="0.1524" layer="91"/>
-<label x="157.48" y="20.32" size="1.778" layer="95" rot="R180" xref="yes"/>
-<pinref part="C2" gate="G$1" pin="1"/>
-</segment>
-</net>
 <net name="VBUS" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="VBUS"/>
@@ -38475,12 +38463,10 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 <segment>
 <pinref part="C15" gate="G$1" pin="2"/>
 <pinref part="GND22" gate="1" pin="GND"/>
-<wire x1="25.4" y1="142.24" x2="25.4" y2="139.7" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="C16" gate="G$1" pin="2"/>
 <pinref part="GND4" gate="1" pin="GND"/>
-<wire x1="40.64" y1="142.24" x2="40.64" y2="139.7" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="C17" gate="G$1" pin="2"/>
@@ -38859,11 +38845,6 @@ Micro B - Standard (Bottom Mount), Shell SMT</description>
 </nets>
 </sheet>
 </sheets>
-<errors>
-<approved hash="102,1,175.26,50.8,AGND,GND,,,,"/>
-<approved hash="102,1,137.16,81.28,AGND,GND,,,,"/>
-<approved hash="102,1,152.4,50.8,AGND,GND,,,,"/>
-</errors>
 </schematic>
 </drawing>
 </eagle>
