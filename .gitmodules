@@ -1,3 +1,6 @@
 [submodule "libraries/RF24"]
 	path = libraries/RF24
 	url = git@github.com:maniacbug/RF24
+[submodule "source"]
+	path = source
+	url = git@github.com:emfcamp/TiLDA-source
