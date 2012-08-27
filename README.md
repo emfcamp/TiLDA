@@ -8,6 +8,10 @@ Guides
 Initialising
 ------------
 
+    git clone --recursive https://github.com/emfcamp/TiLDA
+
+or
+
     git clone git@github.com:emfcamp/TiLDA
     cd TiLDA
     git submodule update --init
@@ -25,8 +29,8 @@ Building
 Linux/OS X (if not using Arduino IDE):
 
     cd source
-    export BOARD=leonardo
     export SERIALDEV=/dev/ttyACM1 # optional
+    export ARDUINODIR=~/Downloads/arduino-1.0.1
     make
     make upload
 
