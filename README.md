@@ -18,7 +18,7 @@ or
 
 Linux/OS X (if not using Arduino IDE):
     export ARDUINODIR=/path/to/arduino-1.0.1
-    for i in $PWD/libraries/*; do if test -d $i; then ln -s $i $ARDUINODIR/libraries/; done
+    for i in $PWD/libraries/*; do if test -d $i; then ln -s $i $ARDUINODIR/libraries/; fi; done
 
 Windows:
 * Copy everything in libraries to the libraries subfolder of arduino-1.0.1.
