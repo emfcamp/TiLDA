@@ -32,7 +32,7 @@ Linux/OS X (if not using Arduino IDE):
     export SERIALDEV=/dev/ttyACM1 # optional
     export ARDUINODIR=~/Downloads/arduino-1.0.1
     make
-    make upload
+    sudo make upload
 
 Windows/Linux/OS X:
 * Run Arduino IDE
