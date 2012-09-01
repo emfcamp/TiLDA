@@ -13,6 +13,13 @@
 
 Lights lights;
 
+#define RF24_PAYLOAD_SIZE 32
+RF24 radio(A0,A1); // CE, CSN
+
+// Radio pipe addresses for the 2 nodes to communicate.
+const uint64_t pipes[2] = { 0xF0F0F0F0E1LL, 0xF0F0F0F0D2LL };
+
+
 // state machine variables irparams
 typedef struct badge_record {
   //char badge_id ;
@@ -27,6 +34,7 @@ enum colour_state {
   INIT_COLOUR_MODE,
   DOUBLE_WHITE_TORCH,
   DOUBLE_RED_TORCH,
+  LIGHTS_OFF,
   GAME_STATE
 };
 
@@ -59,6 +67,12 @@ unsigned int     main_loop_counter = 0;
 uint8_t bit_by_zombie_count = 0;
 int     time_infected = 0;
 
+IRrecv irrecv(PIN_IR_IN);
+
+decode_results results;
+
+
+
 void delay_ten_us(unsigned int us) {
   unsigned int count;
 
@@ -76,6 +90,15 @@ int calc_eeprom_address_from_id(int id) {
 
 void display_colour(uint8_t tick) {
 
+}
+
+unsigned long reverse_long(long val) {
+  unsigned long new_val;
+  for (int i=0; i<32; i++) {
+     new_val = new_val << (val & 1);
+     val = val >> 1;
+  }
+  return new_val;
 }
 
 void HSVtoRGB( uint8_t *r, uint8_t *g, uint8_t *b, uint8_t hue, uint8_t s, uint8_t v )
@@ -362,8 +385,8 @@ void update_my_state(int counter) {
         // converts to RGB 0x0 - & LEDs off.
         HSVtoRGB(&curr_r, &curr_g, &curr_b, 0, 0, 0);
     } else {
-	//int v = (16*((counter % 15)+2) - 1); // 32-255 in blocks of 16
-	int v = 255;
+	      //int v = (16*((counter % 15)+2) - 1); // 32-255 in blocks of 16
+	      int v = 255;
         HSVtoRGB(&curr_r, &curr_g, &curr_b, (curr_colour - 1), 255, v);
     }
 
@@ -377,26 +400,19 @@ void pre_loop_setup() {
     }
 }
 
-void setup() {
-
-    Serial.begin(57600);
-    long my_code = 0;
-
-    pre_loop_setup();
-
-}
 
 void update_my_colour() {
   if ( my_colour_mode == DOUBLE_WHITE_TORCH ) {
     lights.set(PIN_LED_BOTH, 255, 255, 255);
   } else if ( my_colour_mode == DOUBLE_RED_TORCH ) {
     lights.set(PIN_LED_BOTH, 255, 0, 0);
+  } else if ( my_colour_mode == LIGHTS_OFF ) {
+    lights.set(PIN_LED_BOTH, 0, 0, 0);
   } else {
     // do other stuff?
     if ( main_loop_counter % 1000 == 0 ) {
       //lights.set(PIN_LED_BOTH, (main_loop_counter % 255), (255 - (main_loop_counter % 255) ), (main_loop_counter % 255));
       //lights.set(PIN_LED_BOTH, (main_loop_counter % 255), (255 - (main_loop_counter % 255) ), (main_loop_counter % 255));
-      lights.set(PIN_LED_LEFT, l_red, l_green, l_blue);
     } else {
       // default - set 
       if ( main_loop_counter % 2 == 0 ) {
@@ -426,30 +442,61 @@ void update_colour_mode() {
       my_colour_mode = DOUBLE_RED_TORCH;
     } else if ( my_colour_mode == DOUBLE_RED_TORCH ) {
       my_colour_mode = GAME_STATE;
+    } else if ( my_colour_mode == GAME_STATE ) {
+      my_colour_mode = LIGHTS_OFF;
     } else {
       my_colour_mode = DOUBLE_WHITE_TORCH;
     }
     last_button_state = 1;
   } else {
-    last_button_state = button_pressed();
+    last_button_state = 0;
   }
+}
+
+void setup() {
+  Serial.begin(57600);
+  long my_code = 0;
+  pre_loop_setup();
+  irrecv.enableIRIn(); // Start the receiver
+
+  // Setup and configure rf radio
+  //
+  radio.begin();
+  // optionally, increase the delay between retries & # of retries
+  radio.setRetries(15,15);
+  radio.setPayloadSize(RF24_PAYLOAD_SIZE);
+  radio.startListening();
+  radio.openWritingPipe(pipes[0]);
+  radio.openReadingPipe(1,pipes[1]);
+  printf_begin(); // needed for the RF24 printf debugging
+  radio.printDetails(); // show radio details
 }
 
 void loop() {
 
-    update_colour_mode();
-    
-    update_my_colour();
+  update_colour_mode();
+  update_my_colour();
 
-    if ( main_loop_counter % 30 == 0 ) {
-        // every n cycles, reset the keycombo-ometer, so
-        // we don't accidentally enable it.
-        factory_reset_keycombo_count = 0;
+  if (irrecv.decode(&results)) {
+    if ( results.value != 0xffffffff ) {
+      Serial.println(results.value, HEX);
+      irrecv.resume(); // Receive the next value
     }
+  }
 
-    main_loop_counter++;
+  if ( main_loop_counter % 30 == 0 ) {
+      // every n cycles, reset the keycombo-ometer, so
+      // we don't accidentally enable it.
+      factory_reset_keycombo_count = 0;
+  }
 
-    main_loop_counter %= 10000; // keep it decimal
+  main_loop_counter++;
+  main_loop_counter %= 10000; // keep it decimal
+
+  if ( main_loop_counter == 0 ) {
+    radio.printDetails(); // show radio details
+  }
+    
 
 }
 
