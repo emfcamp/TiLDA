@@ -379,6 +379,7 @@ void pre_loop_setup() {
 
 void setup() {
 
+    Serial.begin(57600);
     long my_code = 0;
 
     pre_loop_setup();
@@ -405,10 +406,38 @@ void update_my_colour() {
       }
     }
   }
-  
+}
+
+bool last_button_state = LOW;
+
+bool button_pressed() {
+  // button is LOW when pressed, fix logic
+  if ( digitalRead(2) == LOW ) {
+    Serial.println("button pressed");
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+void update_colour_mode() {
+  if ( button_pressed() == 1 and last_button_state != 1 ) {
+    if ( my_colour_mode == DOUBLE_WHITE_TORCH ) {
+      my_colour_mode = DOUBLE_RED_TORCH;
+    } else if ( my_colour_mode == DOUBLE_RED_TORCH ) {
+      my_colour_mode = GAME_STATE;
+    } else {
+      my_colour_mode = DOUBLE_WHITE_TORCH;
+    }
+    last_button_state = 1;
+  } else {
+    last_button_state = button_pressed();
+  }
 }
 
 void loop() {
+
+    update_colour_mode();
     
     update_my_colour();
 
