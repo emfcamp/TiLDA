@@ -1,0 +1,48 @@
+[Memory Usage]
+1024 B EEPROM:
+	500 x 2B unique IDs
+	24 B other stuff
+
+[Plan]
+Broadcast own ID at regular intervals.
+When detected other ID within a certain range, increment counter by 1.
+Some IDs are static (camp pylons).
+
+[Modules]
+EEPROM I/O
+RF24
+
+
+[State Machine]
+State 0: NORMAL
+	LED1 = 'red'
+	-Broadcasts own ID at regular intervals.
+	-When detected other ID within a certain range, increment counter for that
+		memory space by 1.
+	Interrupts:
+		IRQ 0: RTC/sysclock
+		IRQ 1: StateTransition (SW1) 
+		IRQ 2: RF24
+	
+
+State 1: ID-RECEIVING
+	LED1 = 'yellow'
+	while self.nameState == False:
+		broadcast(MAC)
+		self.ID = listenForIdGivingPacket(stuff)
+
+	self.nameState = True
+	stateTransition(0)
+
+State 2: IDENTITY-GIVING
+	LED1 = 'red'
+	self.queue( listenForMacBroadcast() )
+	for mac in queue:
+		broadcastIdPacket(idCounter)
+		idCounter++
+
+State 3: DUMP_CORE
+	LED1 = 'blue'
+	-Dumps EEPROM contents to PC.
+	-Broadcasts EEPROM contents across WiFi.
+
