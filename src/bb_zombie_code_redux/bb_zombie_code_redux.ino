@@ -1,7 +1,18 @@
 
+#include <SPI.h>
+#include "nRF24L01.h"
+#include "RF24.h"
+#include "printf.h"
+
+#include <IRremote.h>
 #include <EEPROM.h>
 
 #include "zombie.h"
+#include "pins.h"
+#include "lights.h"
+
+Lights lights;
+
 // state machine variables irparams
 typedef struct badge_record {
   //char badge_id ;
@@ -11,10 +22,22 @@ typedef struct badge_record {
 
 badge_record_t global_badge_buffer[BADGE_BUFFER_SIZE];
 
-// for RGB PWM in interrupt
-volatile unsigned char rgb_tick = 0;
-volatile unsigned char ten_ms_ticks = 0;
-volatile unsigned char hundr_ms_ticks = 0;
+// badge display modes
+enum colour_state {
+  INIT_COLOUR_MODE,
+  DOUBLE_WHITE_TORCH,
+  DOUBLE_RED_TORCH,
+  GAME_STATE
+};
+
+uint8_t l_red   = 255;
+uint8_t l_green = 32;
+uint8_t l_blue  = 32;
+
+uint8_t r_red   = 32;
+uint8_t r_green = 32;
+uint8_t r_blue  = 255;
+
 
 uint8_t last_eeprom_read = 1;
 uint8_t enable_rgb_led = 1;
@@ -24,6 +47,7 @@ uint8_t curr_g = 0;
 uint8_t curr_b = 0;
 uint8_t my_id = 0xff;
 uint8_t my_mode = INIT_MODE;
+colour_state my_colour_mode = INIT_COLOUR_MODE;
 uint8_t debug_modes = 0x00;
 uint8_t rgb_colours[3] = { 1, 81, 161 }; // curr_colour values for R, G, and B.
 uint8_t buffer_count = 0;
@@ -51,49 +75,6 @@ int calc_eeprom_address_from_id(int id) {
 }
 
 void display_colour(uint8_t tick) {
-
-  if ( enable_rgb_led ) {
-#ifndef TURN_OFF_COLOUR_DISPLAY
-#ifndef TURN_OFF_PWM_COLOUR
-    if ((curr_r > tick) && ( tick % 5 == 0) ) {
-        PORTB &= ~redMask; // turn on
-    } else {
-        PORTB |= redMask;
-    }
-
-    if ((curr_g > tick) && ( tick % 5 == 0)) {
-        PORTB &= ~grnMask; // turn on
-    } else {
-        PORTB |= grnMask;
-    }
-
-    if ((curr_b > tick) && ( tick % 2 == 0)) {
-        PORTB &= ~bluMask; // turn on
-    } else {
-        PORTB |= bluMask;
-    }
-
-#else
-    if ( (curr_r == 255) && (tick < 32) ) {
-        PORTB &= ~redMask; // turn on
-    } else {
-        PORTB |= redMask;
-    }
-
-    if (curr_g == 255) {
-        PORTB &= ~grnMask; // turn on
-    } else {
-        PORTB |= grnMask;
-    }
-
-    if (curr_b == 255) {
-        PORTB &= ~bluMask; // turn on
-    } else {
-        PORTB |= bluMask;
-    }
-#endif
-#endif
-  }
 
 }
 
@@ -158,60 +139,56 @@ void HSVtoRGB( uint8_t *r, uint8_t *g, uint8_t *b, uint8_t hue, uint8_t s, uint8
  
 void flash_byte(uint8_t data) {
 #ifdef ENABLE_FLASH_BYTE_CODE
-
     for (uint8_t i=0; i<8; i++) {
         if ( data & 1 ) {
-            PORTB |= rgbMask; // turns off RGB
-            PORTB ^= redMask; // turns on red
-            delay_ten_us(20000);
-            PORTB |= rgbMask; // turns off RGB
-            delay_ten_us(IR_DATA_PRINT_DELAY);
+          lights.set(PIN_LED_LEFT, 255, 0, 0);
+          delay(500);
+          lights.set(PIN_LED_LEFT, 0, 0, 0);
         } else {
-            PORTB |= rgbMask; // turns off RGB
-            PORTB ^= bluMask; // turns on red
-            delay_ten_us(20000);
-            PORTB |= bluMask; // turns off RGB
-            delay_ten_us(IR_DATA_PRINT_DELAY);
+          lights.set(PIN_LED_RIGHT, 0, 0, 255);
+          delay(500);
+          lights.set(PIN_LED_RIGHT, 0, 0, 0);
         }
         data >>= 1;
     }
-
 #endif
 }
 
-void update_recd_id_in_eeprom(uint8_t id) {
+void update_recd_id_in_eeprom(int id) {
     // have we seen them before?
     // if not, record that we have
-    //uint8_t times_seen = EEPROM.read((uint8_t*)id);
-    //if ( times_seen == 255 ) {
-        // new id, since eeprom is initialised to 0xFF
-    //    EEPROM.write((uint8_t*)id, 1);
-    //} else if (times_seen < 254 ) {
-    //    EEPROM.write((uint8_t*)id, times_seen + 1);
-    //} // otherwise seen max (254) times, leave at that.
+    unsigned int times_seen = EEPROM.read(calc_eeprom_address_from_id(id)) << 8 + EEPROM.read(calc_eeprom_address_from_id(id)+1) ;
+    if ( times_seen == 65535 ) {
+        // new id, since eeprom is initialised to 0xFFFF
+        write_to_eeprom_id_slot(id, 1);
+    } else if (times_seen < 65000 ) {
+        write_to_eeprom_id_slot(id, times_seen + 1);
+    } // otherwise seen max (65000) times, leave at that.
 }
 
-uint8_t have_not_seen_id_recently(uint8_t recd_id) {
+void write_to_eeprom_id_slot(int id, int v) {
+    // need to write value to two EEPROM byte slots
+    EEPROM.write(calc_eeprom_address_from_id(id), uint8_t(v >> 8)); // highest byte
+    EEPROM.write(calc_eeprom_address_from_id(id) + 1, uint8_t((v << 8) >> 8)); // lowest byte
+}
+
+uint8_t have_not_seen_id_recently(int recd_id) {
     for ( uint8_t i=0; i<BADGE_BUFFER_SIZE; i++ ) {
         if ( global_badge_buffer[i].badge_id == recd_id ) {
             if ( global_badge_buffer[i].first_seen + BADGE_LAST_SEEN_MAX > main_loop_counter ) {
-                //FLASH_RED;
-                // have seen it recently
                 return 0;
             } else {
                 // blank that we've seen the badge, otherwise we'll get duplicates
                 // in the buffer
                 global_badge_buffer[i].badge_id = 0;
                 global_badge_buffer[i].first_seen = 0;
-                //FLASH_GREEN;
             }
         }
     }
-    //FLASH_BLUE;
     return 1;
 }
 
-void record_that_we_have_seen_badge(uint8_t id) {
+void record_that_we_have_seen_badge(int id) {
     if ( have_not_seen_id_recently(id) ) {
         global_badge_buffer[buffer_count].badge_id = id;
         global_badge_buffer[buffer_count].first_seen = main_loop_counter;
@@ -402,32 +379,48 @@ void pre_loop_setup() {
 
 void setup() {
 
-    DDRB =  (rgbMask) | ( irOutMask );
-
-    // all PORTB output pins High (all LEDs off), except for the
-    // IR LED, which is SOURCE not SINK
-    PORTB = ( 0xFF & ~irOutMask );
-                    // -- (if we set an input pin High it activates a
-                    // pull-up resistor, which we don't need, but don't care about either)
-
-    //enableIRIn();
-    sei();                // enable microcontroller interrupts
-
     long my_code = 0;
 
     pre_loop_setup();
 
 }
 
+void update_my_colour() {
+  if ( my_colour_mode == DOUBLE_WHITE_TORCH ) {
+    lights.set(PIN_LED_BOTH, 255, 255, 255);
+  } else if ( my_colour_mode == DOUBLE_RED_TORCH ) {
+    lights.set(PIN_LED_BOTH, 255, 0, 0);
+  } else {
+    // do other stuff?
+    if ( main_loop_counter % 1000 == 0 ) {
+      //lights.set(PIN_LED_BOTH, (main_loop_counter % 255), (255 - (main_loop_counter % 255) ), (main_loop_counter % 255));
+      //lights.set(PIN_LED_BOTH, (main_loop_counter % 255), (255 - (main_loop_counter % 255) ), (main_loop_counter % 255));
+      lights.set(PIN_LED_LEFT, l_red, l_green, l_blue);
+    } else {
+      // default - set 
+      if ( main_loop_counter % 2 == 0 ) {
+        lights.set(PIN_LED_LEFT, l_red, l_green, l_blue);
+      } else {
+        lights.set(PIN_LED_RIGHT, r_red, r_green, r_blue);
+      }
+    }
+  }
+  
+}
+
 void loop() {
+    
+    update_my_colour();
 
-        if ( main_loop_counter % 30 == 0 ) {
-            // every n cycles, reset the keycombo-ometer, so
-            // we don't accidentally enable it.
-            factory_reset_keycombo_count = 0;
-        }
+    if ( main_loop_counter % 30 == 0 ) {
+        // every n cycles, reset the keycombo-ometer, so
+        // we don't accidentally enable it.
+        factory_reset_keycombo_count = 0;
+    }
 
-        main_loop_counter++;
+    main_loop_counter++;
+
+    main_loop_counter %= 10000; // keep it decimal
 
 }
 
