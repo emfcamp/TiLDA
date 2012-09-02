@@ -53,14 +53,30 @@ const char SYNC = 248;
 const char CONTINUE = 251;
 const char START = 250;
 
-uint8_t colours[4][3] = {
+const char numColours = 8;
+unsigned char colours[8][3] = {
   {
     255, 0, 0  }
-  , {
+  ,
+  {
     0, 255, 0  }
-  , {
-    0, 0, 255  }
-  , {
+  ,
+  {
+    0, 0, 255   }
+  ,
+  {
+    255, 255, 255  }
+  ,
+  {
+    255, 255, 0  }
+  ,
+  {
+    0, 255, 255  }
+  ,
+  {
+    255, 0, 255   }
+  ,
+  {
     255, 255, 255  }
 };
 char current_colour = 0;
@@ -133,12 +149,12 @@ void loop(void)
     if(c == SYNC){
       ticks++;
       if(ticks % (24 * 4) == 0){
-//        printf("Now sending... %u [%u,\t%u,\t%u]", current_colour, colours[current_colour][0],colours[current_colour][1],colours[current_colour][2]);
+        printf("Now sending... %u [%u,\t%u,\t%u]", current_colour, colours[current_colour][0],colours[current_colour][1],colours[current_colour][2]);
         bool ok = radio.write(colours[current_colour], 3);
         if(!ok) ok = radio.write(colours[current_colour], 3);
-//        Serial.println(ok ? "ok":"FAILED");
+        Serial.println(ok ? "ok":"FAILED");
         current_colour++;
-        if(current_colour > 3){
+        if(current_colour == numColours){
           current_colour = 0;
         }
       }
@@ -149,6 +165,7 @@ void loop(void)
       Serial.println("Restart sync");
     }
   }
+  delay(10);
 }
 
 void flash(){
@@ -157,6 +174,8 @@ void flash(){
   digitalWrite(ledPin, LOW);
 }
 // vim:ai:cin:sts=2 sw=2 ft=cpp
+
+
 
 
 
