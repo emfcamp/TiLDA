@@ -1,5 +1,5 @@
-Tubfun's MIDI RF lighting code
-=============================
+The 55th Flotilla's TiLDA performance Arduino sketch
+====================================================
 
 These sketches are for the 55th Flotilla performance on Sunday at 6pm on the Alpha Stage of EMF 2012.
 The MidiClockBadgeRecieve sketch is for the TiLDA badge, and will listen for three byte packets, setting the RGB lets to the appropriate values.
