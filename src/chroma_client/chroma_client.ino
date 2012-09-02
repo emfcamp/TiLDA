@@ -46,7 +46,7 @@ void loop() {
         Mirf.setTADDR((byte *)"chroma");
         debug("SND: %02X %02X %02X\r\n", my_colour[0], my_colour[1], my_colour[2]);
         Mirf.send(my_colour);
-	lights.set(PIN_LED_BOTH, my_colour[0], my_colour[1], my_colour[1]);
+	lights.set(PIN_LED_BOTH, my_colour[0], my_colour[1], my_colour[2]);
     }
     last_state = state;
 }
