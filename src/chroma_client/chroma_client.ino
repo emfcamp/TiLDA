@@ -7,14 +7,19 @@
 #include "debug.h"
 
 Lights lights;
-/* byte colour[] = { 0x55, 0x00, 0xFF }; */
-byte colour[] = { 0xff, 0xaa, 0x22 };
+
+#ifndef COLOUR
+#define COLOUR 0x00, 0xFF, 0x00
+#endif
+
+byte colour[] = { COLOUR };
 
 void buttonPress() {
     // Interrupt handler when button state changes
     int state = digitalRead(PIN_BUTTON);
     if (state == LOW) {
 	Mirf.setTADDR((byte *)"chroma");
+	debug("SND: %002X %02X %02X\r\n", colour[0], colour[1], colour[2]);
 	Mirf.send(colour);
     }
 }
@@ -39,7 +44,7 @@ void loop() {
 	memset(data, 0, sizeof(data));
 	Mirf.getData(data);
 	lights.set(PIN_LED_BOTH, data[0], data[1], data[2]);
-	debug("%02X %02X %02X\r\n", data[0], data[1], data[2]);
+	debug("RCV %02X %02X %02X\r\n", data[0], data[1], data[2]);
     }
 }
 

@@ -260,6 +260,7 @@ CPPFLAGS += -I. -Iutil -Iutility -I$(ARDUINOCOREDIR)
 CPPFLAGS += -I$(ARDUINODIR)/hardware/arduino/variants/$(BOARD_BUILD_VARIANT)/
 CPPFLAGS += $(addprefix -I$(ARDUINODIR)/libraries/, $(LIBRARIES))
 CPPFLAGS += $(patsubst %, -I$(ARDUINODIR)/libraries/%/utility, $(LIBRARIES))
+CPPFLAGS += ${CPPFLAGSEXTRA}
 CPPDEPFLAGS = -MMD -MP -MF .dep/$<.dep
 CPPINOFLAGS := -x c++ -include $(ARDUINOCOREDIR)/Arduino.h
 AVRDUDEFLAGS := $(addprefix -C , $(AVRDUDECONF)) -DV
