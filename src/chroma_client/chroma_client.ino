@@ -35,10 +35,10 @@ void setup() {
 
 
 void loop() {
+    lights.set(PIN_LED_BOTH, peer_colour[0], peer_colour[1], peer_colour[2]);
     if (!Mirf.isSending() && Mirf.dataReady()) {
         Mirf.getData(peer_colour);
         debug("RCV %02X %02X %02X\r\n", peer_colour[0], peer_colour[1], peer_colour[2]);
-        lights.set(PIN_LED_BOTH, peer_colour[0], peer_colour[1], peer_colour[2]);    
     }
 
     int state = digitalRead(PIN_BUTTON);
@@ -46,7 +46,7 @@ void loop() {
         Mirf.setTADDR((byte *)"chroma");
         debug("SND: %02X %02X %02X\r\n", my_colour[0], my_colour[1], my_colour[2]);
         Mirf.send(my_colour);
-        lights.set(PIN_LED_BOTH, my_colour[0], my_colour[1], my_colour[2]);
+        memcpy(peer_colour, my_colour, sizeof(peer_colour));
     }
     last_state = state;
 }
