@@ -12,17 +12,11 @@ Lights lights;
 #define COLOUR 0x00, 0xFF, 0x00
 #endif
 
-byte colour[] = { COLOUR };
-
-void buttonPress() {
-    // Interrupt handler when button state changes
-    int state = digitalRead(PIN_BUTTON);
-    if (state == LOW) {
-	Mirf.setTADDR((byte *)"chroma");
-	debug("SND: %002X %02X %02X\r\n", colour[0], colour[1], colour[2]);
-	Mirf.send(colour);
-    }
-}
+/* state for the LEDs */
+byte my_colour[] = { COLOUR };
+byte peer_colour[3];
+/* state for the button */
+int last_state = HIGH;
 
 void setup() {
     Serial.begin(9600);
@@ -30,24 +24,31 @@ void setup() {
     Mirf.cePin = A0;
     Mirf.csnPin = A1;
     Mirf.init();
-    Mirf.setRADDR((byte *)"colour");
+    Mirf.setRADDR((byte *)"chroma");
     Mirf.payload = 3; /* for LEDs */
     Mirf.config();
 
     pinMode(PIN_BUTTON, INPUT_PULLUP);
-    attachInterrupt(INT_BUTTON, buttonPress, CHANGE);
+
+    memset(peer_colour, 0, sizeof(peer_colour));
 }
 
-void loop() {
-    while(Mirf.isSending());
 
-    if (Mirf.dataReady()) {
-    	byte data[Mirf.payload];
-    	memset(data, 0, sizeof(data));
-    	Mirf.getData(data);
-    	lights.set(PIN_LED_BOTH, data[0], data[1], data[2]);
-    	debug("RCV %02X %02X %02X\r\n", data[0], data[1], data[2]);
+void loop() {
+    if (!Mirf.isSending() && Mirf.dataReady()) {
+    	Mirf.getData(peer_colour);
+    	debug("RCV %02X %02X %02X\r\n", peer_colour[0], peer_colour[1], peer_colour[2]);
+	lights.set(PIN_LED_BOTH, peer_colour[0], peer_colour[1], peer_colour[2]);    
     }
+
+    int state = digitalRead(PIN_BUTTON);
+    if (state == HIGH && last_state == LOW) {
+	Mirf.setTADDR((byte *)"chroma");
+	debug("SND: %02X %02X %02X\r\n", my_colour[0], my_colour[1], my_colour[2]);
+	Mirf.send(my_colour);
+	lights.set(PIN_LED_BOTH, my_colour[0], my_colour[1], my_colour[2]);
+    }
+    last_state = state;
 }
 
 
