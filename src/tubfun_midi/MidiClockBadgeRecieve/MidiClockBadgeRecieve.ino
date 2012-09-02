@@ -43,6 +43,14 @@ RF24 radio(A0,A1);
 // Radio pipe addresses for the 2 nodes to communicate.
 const uint64_t pipe = 0xFEFEFEFEE1LL;
 
+enum eMode{
+  IDLE = 0,
+  SYNC = 1,
+};
+
+eMode mode = IDLE;
+const unsigned long idleTime = 60000; //one min
+unsigned long lastMsg = idleTime;//start up idling
 //
 // Setup
 //
@@ -94,10 +102,23 @@ void loop(void)
     bool done = false;
     while (!done){
       done = radio.read( rec_buffer, 3);
+      //update idling time
+      lastMsg = millis();
     }
     Serial.println(rec_buffer[0]);
 //    printf("Setting LEDs to %d %d %d ", rec_buffer[0], rec_buffer[1], rec_buffer[2]);
     lights.set(PIN_LED_BOTH, rec_buffer[0], rec_buffer[1], rec_buffer[2]);
+  }
+  
+  if(millis() - lastMsg > idleTime){
+    mode = IDLE;
+  }else{
+    mode = SYNC;
+  }
+  
+
+  if(mode == IDLE){
+    led_cycle_nonblocking(&lights, PIN_LED_BOTH);
   }
 
 }
