@@ -1,21 +1,5 @@
-/**
- * A Mirf example to test the latency between two Ardunio.
- *
- * Pins:
- * Hardware SPI:
- * MISO -> 12
- * MOSI -> 11
- * SCK -> 13
- *
- * Configurable:
- * CE -> 8
- * CSN -> 7
- *
- * Note: To see best case latency comment out all Serial.println
- * statements not displaying the result and load 
- * 'ping_server_interupt' on the server.
- */
-#define MAGICSIG 0xE14F
+//Use Mirf library to send and receive ID packets
+#define MAGICSIG 0xE14F //placed at the start of packets as identifier
 #include "rf.h"
 #include "ID.h"
 
@@ -68,7 +52,7 @@ void rf_setup(){
 
 ISR(SIG_OUTPUT_COMPARE0){
   //ping and poll on OC0
-  Lights::set(0,0x10,0xFF,0x50);
+  Lights::set(0,0x10,0xFF,0x50); //Set transmit indicator
   if(!Mirf.isSending() && Mirf.dataReady()){
     /*
      * Get load the packet into the buffer.
@@ -76,8 +60,8 @@ ISR(SIG_OUTPUT_COMPARE0){
      
     uint16_t indata[2];
     Mirf.getData(indata);
-    if (indata[0]=MAGICSIG){
-      incr(indata[1])
+    if (indata[0]=MAGICSIG){ 
+      incr(indata[1]) //Not quite right. Needs to check if the ID is already visible.
     
     /*
      * Set the send address.

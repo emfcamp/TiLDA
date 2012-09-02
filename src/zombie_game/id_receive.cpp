@@ -1,3 +1,4 @@
+//Request an ID and store it
 #include "RF24/RF24.h"
 #include <avr/io.h>
 #include <arduino.h>
@@ -14,7 +15,7 @@ void assignID(uint16_t val){
 
 ISR(Button) {	//update ISR name
     Lights::set(0,0x10,0xFF,0x50);
-    ID=requestID()
+    ID=requestID() //TODO using IR lib
     assignID(ID)
     Lights::set(0,0x00,0x00,0x00);
 }
