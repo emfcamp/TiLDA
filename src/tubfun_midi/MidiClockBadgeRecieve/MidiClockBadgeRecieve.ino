@@ -78,16 +78,13 @@ void setup(void)
   // Dump the configuration of the rf unit for debugging
   //
   radio.printDetails();
- 
- 
- lights.set(PIN_LED_BOTH,255, 255, 255);
 }
 
 //
 // Loop
 //
 
-uint8_t rec_buffer[3];
+unsigned char rec_buffer[3];
 
 void loop(void)
 {
@@ -98,8 +95,9 @@ void loop(void)
     while (!done){
       done = radio.read( rec_buffer, 3);
     }
+    Serial.println(rec_buffer[0]);
 //    printf("Setting LEDs to %d %d %d ", rec_buffer[0], rec_buffer[1], rec_buffer[2]);
-    lights.set(PIN_LED_BOTH,rec_buffer[0],rec_buffer[1],rec_buffer[2]);
+    lights.set(PIN_LED_BOTH, rec_buffer[0], rec_buffer[1], rec_buffer[2]);
   }
 
 }
