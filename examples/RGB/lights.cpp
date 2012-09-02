@@ -3,7 +3,7 @@
 int pins[] = {PIN_LED_RIGHT, PIN_LED_LEFT, PIN_LED_BLUE, PIN_LED_GREEN, PIN_LED_RED};
 
 // Calibration for LED colour issues
-const float calibration[] = {0.8, 1, 1};
+const float calibration[] = {1, 1, 1};
 bool led_stop = false;
 
 Lights::Lights() {
