@@ -44,3 +44,13 @@ void led_cycle(Lights *lights, int light, int time) {
     delay(1);
   }
 }
+
+void led_cycle_nonblocking(Lights *lights, int light) {
+  unsigned char red = 0, green = 0, blue = 0;
+  unsigned char brightness = 200;
+  float tick = millis() / 500;
+  red = (unsigned char)(abs(sin(tick)) * brightness);
+  green = (unsigned char)(abs(sin(tick + PI / 4)) * brightness);
+  blue = (unsigned char)(abs(sin(tick + PI / 2)) * brightness);
+  lights->set(light, red, green, blue);
+}
