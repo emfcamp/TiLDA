@@ -22,16 +22,18 @@ void setup() {
 void loop() {
     byte data[Mirf.payload];
 
-    if (!Mirf.isSending() && Mirf.dataReady()) {
-	memset(data, 0, sizeof(data));
-	Mirf.getData(data);
-	lights.set(PIN_LED_BOTH, data[0], data[1], data[2]);
-	debug("%02X %02X %02X\r\n", data[0], data[1], data[2]);
-	Mirf.setTADDR((byte *)"colour");
-	for(int i=1; i<5; i++) {
-	    Mirf.send(data);
-	    delay(10);
-	}
+    while(Mirf.isSending()); 
+
+    if (Mirf.dataReady()) {
+    	memset(data, 0, sizeof(data));
+    	Mirf.getData(data);
+    	lights.set(PIN_LED_BOTH, data[0], data[1], data[2]);
+    	debug("%02X %02X %02X\r\n", data[0], data[1], data[2]);
+    	Mirf.setTADDR((byte *)"colour");
+    	for(int i=1; i<5; i++) {
+    	    Mirf.send(data);
+    	    delay(10);
+    	}
     }
 }
 

@@ -39,12 +39,14 @@ void setup() {
 }
 
 void loop() {
-    if (!Mirf.isSending() && Mirf.dataReady()) {
-	byte data[Mirf.payload];
-	memset(data, 0, sizeof(data));
-	Mirf.getData(data);
-	lights.set(PIN_LED_BOTH, data[0], data[1], data[2]);
-	debug("RCV %02X %02X %02X\r\n", data[0], data[1], data[2]);
+    while(Mirf.isSending());
+
+    if (Mirf.dataReady()) {
+    	byte data[Mirf.payload];
+    	memset(data, 0, sizeof(data));
+    	Mirf.getData(data);
+    	lights.set(PIN_LED_BOTH, data[0], data[1], data[2]);
+    	debug("RCV %02X %02X %02X\r\n", data[0], data[1], data[2]);
     }
 }
 
