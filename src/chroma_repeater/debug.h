@@ -1,1 +1,0 @@
-void debug(char *fmt, ... );
